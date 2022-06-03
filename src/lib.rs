@@ -46,7 +46,7 @@ pub fn init() {
         let exporter = match opentelemetry_prometheus::exporter().try_init() {
             Ok(exporter) => exporter,
             Err(err) => {
-                error!("could not create prometheus exporter {:?}", err );
+                error!("could not create prometheus serve metrics {:?}", err );
                 return;
             }
         };

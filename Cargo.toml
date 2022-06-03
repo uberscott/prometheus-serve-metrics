@@ -1,6 +1,6 @@
 [package]
 name = "prometheus-serve-metrics"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 description = "captures opentelemetry metrics for prometheus and serves those metrics on a simple http server"
 license = "MIT"

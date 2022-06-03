@@ -1,17 +1,14 @@
-#![allow(warnings)]
 use anyhow::{anyhow, Result};
-use hyper::header::CONTENT_TYPE;
-use hyper::service::{make_service_fn, service_fn};
+use hyper::{
+    header::CONTENT_TYPE,
+    service::{make_service_fn, service_fn},
+};
 use hyper::{Body, Method, Request, Response, Server};
 use opentelemetry_prometheus::PrometheusExporter;
-use prometheus::Encoder;
-use prometheus::TextEncoder;
-use std::convert::Infallible;
-use std::net::{SocketAddr, TcpListener};
-use std::sync::Arc;
+use prometheus::{Encoder, TextEncoder};
+use std::{convert::Infallible, net::SocketAddr, sync::Arc};
 use tokio::task::JoinHandle;
-
-use tracing::{error, info};
+use tracing::info;
 
 async fn metrics(req: Request<Body>, state: Arc<AppState>) -> Result<Response<Body>, hyper::Error> {
     let response = match (req.method(), req.uri().path()) {
@@ -40,7 +37,7 @@ struct AppState {
     exporter: PrometheusExporter,
 }
 
-pub fn init() -> Result<(SocketAddr, JoinHandle<Result<()>>)> {
+pub fn start_metrics_server() -> Result<(SocketAddr, JoinHandle<Result<()>>)> {
     let addr = ([0, 0, 0, 0], 9090).into();
 
     let handle = tokio::spawn(async move {
@@ -74,13 +71,4 @@ pub fn init() -> Result<(SocketAddr, JoinHandle<Result<()>>)> {
     });
 
     Ok((addr, handle))
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
 }

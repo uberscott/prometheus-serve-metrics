@@ -69,7 +69,7 @@ pub fn init() {
 
         let server = Server::bind(&addr).serve(make_svc);
 
-        info!("Serving prometheus pull metrics on http://{}", addr);
+        info!("Serving prometheus metrics on http://{}", addr);
 
         server.await;
     });

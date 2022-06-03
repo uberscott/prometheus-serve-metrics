@@ -1,0 +1,16 @@
+[package]
+name = "prometheus-serve-metrics"
+version = "0.1.0"
+edition = "2021"
+description = "captures opentelemetry metrics for prometheus and serves those metrics on a simple http server"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+opentelemetry = "0.17.0"
+opentelemetry-prometheus = "0.10.0"
+hyper = { version="0.14", features = ["server","tcp","http2","http1"]}
+tokio = { version = "1.8", features = ["macros", "rt-multi-thread"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.2", features = ["env-filter", "json"] }
+prometheus = "0.13.0"

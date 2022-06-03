@@ -8,7 +8,7 @@ You can setup prometheus to poll the metrics on a timer.
 All you have to do is add the crate and invoke:
 
 ```rust
-prometheus_pull_metrics::init();
+prometheus_serve_metrics::init();
 ```
 
 That's it!

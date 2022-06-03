@@ -3,6 +3,8 @@ name = "prometheus-serve-metrics"
 version = "0.1.0"
 edition = "2021"
 description = "captures opentelemetry metrics for prometheus and serves those metrics on a simple http server"
+license = "MIT"
+authors = ["Scott Williams <scott@mightydevco.com>"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

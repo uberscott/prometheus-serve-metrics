@@ -1,20 +1,19 @@
 #![allow(warnings)]
-
-use std::convert::Infallible;
-use std::sync::Arc;
-use hyper::{Body, Method, Request, Response, Server};
+use anyhow::{anyhow, Result};
 use hyper::header::CONTENT_TYPE;
 use hyper::service::{make_service_fn, service_fn};
+use hyper::{Body, Method, Request, Response, Server};
 use opentelemetry_prometheus::PrometheusExporter;
-use prometheus::TextEncoder;
 use prometheus::Encoder;
-use tracing::{info,error};
+use prometheus::TextEncoder;
+use std::convert::Infallible;
+use std::net::{SocketAddr, TcpListener};
+use std::sync::Arc;
+use tokio::task::JoinHandle;
 
-async fn metrics(
-    req: Request<Body>,
-    state: Arc<AppState>,
-) -> Result<Response<Body>, hyper::Error> {
+use tracing::{error, info};
 
+async fn metrics(req: Request<Body>, state: Arc<AppState>) -> Result<Response<Body>, hyper::Error> {
     let response = match (req.method(), req.uri().path()) {
         (&Method::GET, "/metrics") => {
             let mut buffer = vec![];
@@ -41,19 +40,21 @@ struct AppState {
     exporter: PrometheusExporter,
 }
 
-pub fn init() {
-    tokio::spawn(async move {
+pub fn init() -> Result<(SocketAddr, JoinHandle<Result<()>>)> {
+    let addr = ([0, 0, 0, 0], 9090).into();
+
+    let handle = tokio::spawn(async move {
         let exporter = match opentelemetry_prometheus::exporter().try_init() {
             Ok(exporter) => exporter,
             Err(err) => {
-                error!("could not create prometheus serve metrics {:?}", err );
-                return;
+                return Err(anyhow!(
+                    "Failed to creat prometheus serve metrics {:?}",
+                    err
+                ))
             }
         };
 
-        let state = Arc::new(AppState {
-            exporter
-        });
+        let state = Arc::new(AppState { exporter });
 
         // For every connection, we must make a `Service` to handle all
         // incoming HTTP requests on said connection.
@@ -65,20 +66,17 @@ pub fn init() {
             async move { Ok::<_, Infallible>(service_fn(move |req| metrics(req, state.clone()))) }
         });
 
-        let addr = ([0, 0, 0, 0], 9090).into();
-
         let server = Server::bind(&addr).serve(make_svc);
 
         info!("Serving prometheus metrics on http://{}", addr);
 
-        server.await;
+        server.await.map_err(Into::into)
     });
+
+    Ok((addr, handle))
 }
 
-
-
-
-    #[cfg(test)]
+#[cfg(test)]
 mod tests {
     #[test]
     fn it_works() {
